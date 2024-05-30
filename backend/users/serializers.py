@@ -1,26 +1,18 @@
-from django.contrib.auth import get_user_model
-from rest_framework import serializers
+from collections import OrderedDict
 
-UserModel = get_user_model()
+from rest_framework import serializers
+from users.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserModel
+        model = User
         fields = ("id", "email", "password")
         extra_kwargs = {
-            "id": {
-                "read_only": True,
-            },
             "password": {
                 "write_only": True,
             },
         }
 
-    def create(self, validated_data):
-        user = UserModel.objects.create_user(
-            email=validated_data["email"],
-            password=validated_data["password"],
-        )
-
-        return user
+    def create(self, validated_data: OrderedDict) -> User:
+        return User.objects.create_user(**validated_data)
