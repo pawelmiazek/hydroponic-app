@@ -38,3 +38,7 @@ class HydroponicMeasurementSerializer(serializers.ModelSerializer):
             self.fail("invalid_system")
 
         return value
+
+    def create(self, validated_data: OrderedDict, **kwargs) -> HydroponicSystem:
+        system = validated_data.pop("system_id")
+        return HydroponicMeasurement.objects.create(system=system, **validated_data)
