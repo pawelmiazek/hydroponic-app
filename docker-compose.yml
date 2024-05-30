@@ -1,0 +1,38 @@
+version: "3.8"
+
+x-base: &base
+  image: hydroponic-backend
+  volumes:
+    - ./backend:/app
+  depends_on:
+    - db
+  env_file: ./backend/.env
+
+services:
+  db:
+    image: postgres:16.2-alpine
+    container_name: hydroponic-db
+
+    environment:
+      - POSTGRES_USER=backend
+      - POSTGRES_PASSWORD=backend
+      - POSTGRES_DB=backend
+      - PGDATA=/var/lib/postgresql/data
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  django:
+    <<: *base
+    container_name: hydroponic-django
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    command: ["bash", "./scripts/run_local.sh"]
+    ports:
+      - 8000:8000
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+volumes:
+  db:

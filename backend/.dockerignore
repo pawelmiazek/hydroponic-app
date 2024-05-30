@@ -1,0 +1,7 @@
+__pypackages__
+htmlcov
+logs
+prof
+.coverage
+.pytest_cache
+.idea
