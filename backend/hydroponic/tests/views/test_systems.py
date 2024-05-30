@@ -53,6 +53,34 @@ class TestHydroponicSystemViewSet:
             system["id"] for system in result
         }
 
+    def test_case_systems_filter_by_name_return_filtered_list(
+        self, api_client, user, hydroponic_system_factory
+    ):
+        hydroponic_system_factory.create_batch(2)
+        hydroponic_system_factory.create_batch(2, user=user, name="Test system")
+        hydroponic_system_factory(user=user, name="Test system 2")
+
+        api_client.force_authenticate(user=user)
+        response = api_client.get(self.ENDPOINT, {"search": "Test system"})
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 3
+
+        response = api_client.get(self.ENDPOINT, {"search": "Test system 2"})
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 1
+
+        response = api_client.get(
+            self.ENDPOINT, {"search": "Definietely not system name"}
+        )
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 0
+
     def test_case_create_system_return_success_data(self, api_client, user):
         api_client.force_authenticate(user=user)
         system_name = "Test system"

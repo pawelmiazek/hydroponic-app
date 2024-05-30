@@ -1,3 +1,4 @@
+from hydroponic.filters import HydroponicMeasurementFilter
 from hydroponic.models import HydroponicMeasurement
 from hydroponic.models import HydroponicSystem
 from hydroponic.serializers import HydroponicMeasurementSerializer
@@ -5,12 +6,15 @@ from hydroponic.serializers import HydroponicSystemSerializer
 from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework import viewsets
+from rest_framework.filters import SearchFilter
 
 
 class HydroponicSystemViewSet(viewsets.ModelViewSet):
     queryset = HydroponicSystem.objects.all()
     serializer_class = HydroponicSystemSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [SearchFilter]
+    search_fields = ["name"]
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
@@ -30,6 +34,7 @@ class HydroponicMeasurementViewSet(
     queryset = HydroponicMeasurement.objects.all()
     serializer_class = HydroponicMeasurementSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_class = HydroponicMeasurementFilter
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

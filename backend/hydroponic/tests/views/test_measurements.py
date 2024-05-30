@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 
 import pytest
@@ -55,6 +56,174 @@ class TestHydroponicSystemViewSet:
             str(measurement.id)
             for measurement in HydroponicMeasurement.objects.filter(system__user=user)
         } == {measurement["id"] for measurement in result}
+
+    @pytest.mark.freeze_time("2024-05-31T10:25:00Z")
+    def test_case_measurements_filter_by_create_at_return_filtered_list(
+        self, api_client, user, hydroponic_measurement_factory
+    ):
+        date_now = datetime.datetime.now()
+        hydroponic_measurement_factory(system__user=user)
+
+        api_client.force_authenticate(user=user)
+        response = api_client.get(
+            self.ENDPOINT,
+            {
+                "created_at__gte": date_now.isoformat(),
+                "created_at__lte": (date_now + datetime.timedelta(hours=4)).isoformat(),
+            },
+        )
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 1
+
+        response = api_client.get(
+            self.ENDPOINT,
+            {
+                "created_at__gt": date_now.isoformat(),
+                "created_at__lte": (date_now + datetime.timedelta(hours=4)).isoformat(),
+            },
+        )
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 0
+
+        response = api_client.get(
+            self.ENDPOINT,
+            {
+                "created_at__gt": (date_now - datetime.timedelta(hours=4)).isoformat(),
+                "created_at__lt": (date_now + datetime.timedelta(hours=4)).isoformat(),
+            },
+        )
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 1
+
+    def test_case_measurements_filter_by_ph_return_filtered_list(
+        self, api_client, user, hydroponic_measurement_factory
+    ):
+        hydroponic_measurement_factory(system__user=user, ph=7)
+
+        api_client.force_authenticate(user=user)
+        response = api_client.get(self.ENDPOINT, {"ph__gte": 7, "ph__lte": 10})
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 1
+
+        response = api_client.get(self.ENDPOINT, {"ph__gt": 7, "ph__lte": 10})
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 0
+
+        response = api_client.get(self.ENDPOINT, {"ph__gt": 4, "ph__lt": 8})
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 1
+
+    def test_case_measurements_filter_by_tds_return_filtered_list(
+        self, api_client, user, hydroponic_measurement_factory
+    ):
+        hydroponic_measurement_factory(system__user=user, tds=125)
+
+        api_client.force_authenticate(user=user)
+        response = api_client.get(self.ENDPOINT, {"tds__gte": 125, "tds__lte": 150})
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 1
+
+        response = api_client.get(self.ENDPOINT, {"tds__gt": 125, "tds__lte": 150})
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 0
+
+        response = api_client.get(self.ENDPOINT, {"tds__gt": 100, "tds__lt": 130})
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 1
+
+    def test_case_measurements_filter_by_temperature_return_filtered_list(
+        self, api_client, user, hydroponic_measurement_factory
+    ):
+        hydroponic_measurement_factory(system__user=user, water_temperature=21)
+
+        api_client.force_authenticate(user=user)
+        response = api_client.get(
+            self.ENDPOINT, {"water_temperature__gte": 21, "water_temperature__lte": 30}
+        )
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 1
+
+        response = api_client.get(
+            self.ENDPOINT, {"water_temperature__gt": 21, "water_temperature__lte": 30}
+        )
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 0
+
+        response = api_client.get(
+            self.ENDPOINT, {"water_temperature__gt": -10, "water_temperature__lt": 25}
+        )
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 1
+
+    def test_case_measurements_filter_by_system_id_return_filtered_list(
+        self, api_client, user, hydroponic_measurement_factory
+    ):
+        measurement = hydroponic_measurement_factory(system__user=user)
+        measurement_2 = hydroponic_measurement_factory()
+
+        api_client.force_authenticate(user=user)
+        response = api_client.get(
+            self.ENDPOINT, {"system_id": str(measurement.system.id)}
+        )
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 1
+
+        response = api_client.get(
+            self.ENDPOINT, {"system_id": str(measurement_2.system.id)}
+        )
+        result = response.json()["results"]
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(result) == 0
+
+    def test_case_measurements_order_by_ph_return_filtered_list(
+        self, api_client, user, hydroponic_measurement_factory
+    ):
+        measurement = hydroponic_measurement_factory(system__user=user, ph=6)
+        measurement_2 = hydroponic_measurement_factory(system__user=user, ph=8)
+
+        api_client.force_authenticate(user=user)
+        response = api_client.get(self.ENDPOINT, {"order_by": "ph"})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [m["id"] for m in response.json()["results"]] == [
+            str(measurement.id),
+            str(measurement_2.id),
+        ]
+
+        response = api_client.get(self.ENDPOINT, {"order_by": "-ph"})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [m["id"] for m in response.json()["results"]] == [
+            str(measurement_2.id),
+            str(measurement.id),
+        ]
 
     def test_case_create_measurement_return_success_data(
         self, api_client, hydroponic_system

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class HydroponicSystem(DateTimeUUIDMixin):
-    name: str = models.CharField(max_length=150, unique=True)
+    name: str = models.CharField(max_length=150)
     description: str = models.TextField(null=True, blank=True)
     user: "User" = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="hydroponic_systems"
