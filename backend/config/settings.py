@@ -174,16 +174,6 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_PAGINATION_CLASS": "common.pagination.CustomPageNumberPagination",
-    "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
-        "common.throttling.BurstRateThrottle",
-        "common.throttling.SustainedRateThrottle",
-    ],
-    "DEFAULT_THROTTLE_RATES": {
-        "anon": f'{env.int("ANON_THROTTLE_RATE", default=100)}/day',
-        "burst": f'{env.int("BURST_THROTTLE_RATE", default=100)}/min',
-        "sustained": f'{env.int("SUSTAINED_THROTTLE_RATE", default=10000)}/day',
-    },
 }
 
 SIMPLE_JWT = {

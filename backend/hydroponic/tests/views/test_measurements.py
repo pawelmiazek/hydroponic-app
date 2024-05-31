@@ -101,83 +101,65 @@ class TestHydroponicSystemViewSet:
         assert response.status_code == status.HTTP_200_OK
         assert len(result) == 1
 
+    @pytest.mark.parametrize(
+        "params, results_count",
+        [
+            ({"ph__gte": 7, "ph__lte": 10}, 1),
+            ({"ph__gt": 7, "ph__lte": 10}, 0),
+            ({"ph__gt": 4, "ph__lt": 8}, 1),
+        ],
+    )
     def test_case_measurements_filter_by_ph_return_filtered_list(
-        self, api_client, user, hydroponic_measurement_factory
+        self, api_client, user, hydroponic_measurement_factory, params, results_count
     ):
         hydroponic_measurement_factory(system__user=user, ph=7)
 
         api_client.force_authenticate(user=user)
-        response = api_client.get(self.ENDPOINT, {"ph__gte": 7, "ph__lte": 10})
+        response = api_client.get(self.ENDPOINT, params)
         result = response.json()["results"]
 
         assert response.status_code == status.HTTP_200_OK
-        assert len(result) == 1
+        assert len(result) == results_count
 
-        response = api_client.get(self.ENDPOINT, {"ph__gt": 7, "ph__lte": 10})
-        result = response.json()["results"]
-
-        assert response.status_code == status.HTTP_200_OK
-        assert len(result) == 0
-
-        response = api_client.get(self.ENDPOINT, {"ph__gt": 4, "ph__lt": 8})
-        result = response.json()["results"]
-
-        assert response.status_code == status.HTTP_200_OK
-        assert len(result) == 1
-
+    @pytest.mark.parametrize(
+        "params, results_count",
+        [
+            ({"tds__gte": 125, "tds__lte": 150}, 1),
+            ({"tds__gt": 125, "tds__lte": 150}, 0),
+            ({"tds__gt": 100, "tds__lt": 130}, 1),
+        ],
+    )
     def test_case_measurements_filter_by_tds_return_filtered_list(
-        self, api_client, user, hydroponic_measurement_factory
+        self, api_client, user, hydroponic_measurement_factory, params, results_count
     ):
         hydroponic_measurement_factory(system__user=user, tds=125)
 
         api_client.force_authenticate(user=user)
-        response = api_client.get(self.ENDPOINT, {"tds__gte": 125, "tds__lte": 150})
+        response = api_client.get(self.ENDPOINT, params)
         result = response.json()["results"]
 
         assert response.status_code == status.HTTP_200_OK
-        assert len(result) == 1
+        assert len(result) == results_count
 
-        response = api_client.get(self.ENDPOINT, {"tds__gt": 125, "tds__lte": 150})
-        result = response.json()["results"]
-
-        assert response.status_code == status.HTTP_200_OK
-        assert len(result) == 0
-
-        response = api_client.get(self.ENDPOINT, {"tds__gt": 100, "tds__lt": 130})
-        result = response.json()["results"]
-
-        assert response.status_code == status.HTTP_200_OK
-        assert len(result) == 1
-
+    @pytest.mark.parametrize(
+        "params, results_count",
+        [
+            ({"water_temperature__gte": 21, "water_temperature__lte": 30}, 1),
+            ({"water_temperature__gt": 21, "water_temperature__lte": 30}, 0),
+            ({"water_temperature__gt": -10, "water_temperature__lt": 25}, 1),
+        ],
+    )
     def test_case_measurements_filter_by_temperature_return_filtered_list(
-        self, api_client, user, hydroponic_measurement_factory
+        self, api_client, user, hydroponic_measurement_factory, params, results_count
     ):
         hydroponic_measurement_factory(system__user=user, water_temperature=21)
 
         api_client.force_authenticate(user=user)
-        response = api_client.get(
-            self.ENDPOINT, {"water_temperature__gte": 21, "water_temperature__lte": 30}
-        )
+        response = api_client.get(self.ENDPOINT, params)
         result = response.json()["results"]
 
         assert response.status_code == status.HTTP_200_OK
-        assert len(result) == 1
-
-        response = api_client.get(
-            self.ENDPOINT, {"water_temperature__gt": 21, "water_temperature__lte": 30}
-        )
-        result = response.json()["results"]
-
-        assert response.status_code == status.HTTP_200_OK
-        assert len(result) == 0
-
-        response = api_client.get(
-            self.ENDPOINT, {"water_temperature__gt": -10, "water_temperature__lt": 25}
-        )
-        result = response.json()["results"]
-
-        assert response.status_code == status.HTTP_200_OK
-        assert len(result) == 1
+        assert len(result) == results_count
 
     def test_case_measurements_filter_by_system_id_return_filtered_list(
         self, api_client, user, hydroponic_measurement_factory
