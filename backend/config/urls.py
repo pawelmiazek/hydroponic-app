@@ -38,6 +38,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("users/", include("users.urls")),
+    path("hydroponic/", include("hydroponic.urls")),
     path("auth/", include("config.auth_urls")),
     path("admin/", admin.site.urls),
 ]

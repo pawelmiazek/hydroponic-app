@@ -1,0 +1,6 @@
+import pytest_factoryboy
+from hydroponic.tests import factories
+
+
+pytest_factoryboy.register(factories.HydroponicSystemFactory)
+pytest_factoryboy.register(factories.HydroponicMeasurementFactory)
