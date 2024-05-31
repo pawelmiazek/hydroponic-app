@@ -8,6 +8,12 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 
+class MeasurementsForSystemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HydroponicMeasurement
+        fields = ("id", "ph", "water_temperature", "tds")
+
+
 @context_user_required
 class HydroponicSystemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,6 +22,19 @@ class HydroponicSystemSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data: OrderedDict, **kwargs) -> HydroponicSystem:
         return HydroponicSystem.objects.create(user=self.context_user, **validated_data)
+
+
+@context_user_required
+class HydroponicSystemDetailsSerializer(serializers.ModelSerializer):
+    measurements = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HydroponicSystem
+        fields = ("id", "name", "description", "measurements")
+
+    def get_measurements(self, obj: HydroponicSystem) -> HydroponicMeasurement:
+        measurements = obj.measurements.all().order_by("-created_at")[:10]
+        return MeasurementsForSystemSerializer(measurements, many=True).data
 
 
 @context_user_required

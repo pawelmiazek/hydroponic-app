@@ -52,6 +52,7 @@ class TestHydroponicSystemViewSet:
         assert {str(system.id) for system in user.hydroponic_systems.all()} == {
             system["id"] for system in result
         }
+        assert not hasattr(result[0], "measurements")
 
     def test_case_systems_filter_by_name_return_filtered_list(
         self, api_client, user, hydroponic_system_factory
@@ -138,6 +139,26 @@ class TestHydroponicSystemViewSet:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_retrieve_system_return_proper_data(
+        self,
+        api_client,
+        user,
+        hydroponic_system_factory,
+        hydroponic_measurement_factory,
+    ):
+        api_client.force_authenticate(user=user)
+        system = hydroponic_system_factory(user=user)
+        hydroponic_measurement_factory.create_batch(15, system=system)
+
+        response = api_client.get(f"{self.ENDPOINT}{system.id}/")
+        result = response.json()
+
+        assert response.status_code == status.HTTP_200_OK
+        assert result["id"] == str(system.id)
+        assert result["name"] == system.name
+        assert result["description"] == system.description
+        assert len(result["measurements"]) == 10
 
     def test_delete_system_then_properly_remove(
         self, api_client, user, hydroponic_system_factory

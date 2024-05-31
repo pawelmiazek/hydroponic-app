@@ -2,6 +2,7 @@ from hydroponic.filters import HydroponicMeasurementFilter
 from hydroponic.models import HydroponicMeasurement
 from hydroponic.models import HydroponicSystem
 from hydroponic.serializers import HydroponicMeasurementSerializer
+from hydroponic.serializers import HydroponicSystemDetailsSerializer
 from hydroponic.serializers import HydroponicSystemSerializer
 from rest_framework import mixins
 from rest_framework import permissions
@@ -22,7 +23,17 @@ class HydroponicSystemViewSet(viewsets.ModelViewSet):
             # fyi: https://github.com/axnsan12/drf-yasg/issues/333
             return HydroponicSystem.objects.none()
 
-        return HydroponicSystem.objects.filter(user=self.request.user).order_by("id")
+        return (
+            HydroponicSystem.objects.filter(user=self.request.user)
+            .prefetch_related("measurements")
+            .order_by("id")
+        )
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return HydroponicSystemDetailsSerializer
+
+        return HydroponicSystemSerializer
 
 
 class HydroponicMeasurementViewSet(
